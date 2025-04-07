@@ -66,6 +66,9 @@ const groupSchema = mongoose.Schema(
   { timestamps: true }
 );
 
+groupSchema.index({ score: -1 });
+groupSchema.index({ maxStreak: -1 });
+
 const Group = mongoose.model("Group", groupSchema);
 
 module.exports = { Group };

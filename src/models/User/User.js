@@ -41,6 +41,10 @@ const userSchema = mongoose.Schema(
       type: Number,
       default: 0,
     },
+    score: {
+      type: Number,
+      default: 0,
+    },
     tier: {
       type: Number,
       default: 0,
@@ -54,6 +58,9 @@ const userSchema = mongoose.Schema(
   },
   { timestamps: true }
 );
+
+userSchema.index({ score: -1 });
+userSchema.index({ maxStreak: -1 });
 
 const User = mongoose.model("User", userSchema);
 
