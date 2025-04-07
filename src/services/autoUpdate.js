@@ -31,18 +31,28 @@ const autoUpdate = async () => {
   );
 
   try {
-    if (user.isVerified === false) {
-      logger.info(`[AUTO] "${user.handle}" is not verified.`);
-    } else {
-      await userUpdateByScrap(user.handle);
-    }
+    await userUpdateByScrap(user.handle);
   } catch (error) {
     logger.error(`[AUTO] "${user.handle}" Error updating user:`, error.message);
   }
 
-  currentIndex = (currentIndex + 1) % userQueue.length;
+  currentIndex++;
 
-  scheduleNext(); // 다음 사용자 업데이트 예약
+  if (currentIndex >= userQueue.length) {
+    logger.info("[AUTO] Completed one round of updates. Reloading users...");
+    currentIndex = 0;
+    userQueue = await loadUsersFromDB();
+
+    if (!userQueue || userQueue.length === 0) {
+      logger.warn("[AUTO] EMPTY QUEUE after reload! Retrying in 5s...");
+      setTimeout(init, 5000);
+      return;
+    }
+
+    logger.info(`[AUTO] Reloaded ${userQueue.length} users from DB.`);
+  }
+
+  scheduleNext();
 };
 
 const scheduleNext = () => {
@@ -57,20 +67,11 @@ const startUpdating = () => {
   autoUpdate(); // 첫 실행
 };
 
-const addUserInQueue = (handle) => {
-  if (!userQueue.find((u) => u.handle === handle)) {
-    userQueue.push({ handle });
-    logger.info(`[AUTO] New user "${handle}" added to queue!`);
-  } else {
-    logger.info(`[AUTO] User "${handle}" is already in queue.`);
-  }
-};
-
 const init = async () => {
   userQueue = await loadUsersFromDB();
 
   if (!userQueue || userQueue.length === 0) {
-    logger.wran("[AUTO] EMPTY QUEUE!!! RELOADING DB!!!");
+    logger.wran("[AUTO] EMPTY QUEUE after reload! Retrying in 5s...");
     setTimeout(init, 5000); // 5초 후 재시도
     return;
   }
@@ -81,5 +82,4 @@ const init = async () => {
 
 module.exports = {
   init,
-  addUserInQueue,
 };
