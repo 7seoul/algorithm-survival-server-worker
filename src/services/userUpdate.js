@@ -44,7 +44,7 @@ const userUpdateByScrap = async (handle) => {
         { $set: updateFields },
         { new: true }
       )
-        .select("-_id -__v -password -token -verificationCode -isVerified")
+        .select("-_id -__v -password -token -verificationCode")
         .populate("joinedGroupList", "groupName _id memberData");
 
       logger.info(`[USER UPDATE] "${handle}" profile updated`);
@@ -162,7 +162,7 @@ const userUpdateBySolvedac = async (handle) => {
         { $set: updateFields },
         { new: true }
       )
-        .select("-__v -password -token -verificationCode -isVerified")
+        .select("-__v -password -token -verificationCode")
         .populate("joinedGroupList", "groupName _id memberData");
 
       logger.info(`[USE SOLVEDAC API] "${handle}" profile updated`);
