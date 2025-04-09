@@ -71,7 +71,7 @@ const init = async () => {
   userQueue = await loadUsersFromDB();
 
   if (!userQueue || userQueue.length === 0) {
-    logger.wran("[AUTO] EMPTY QUEUE after reload! Retrying in 5s...");
+    logger.warn("[AUTO] EMPTY QUEUE after reload! Retrying in 5s...");
     setTimeout(init, 5000); // 5초 후 재시도
     return;
   }
