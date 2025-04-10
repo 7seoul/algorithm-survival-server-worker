@@ -84,11 +84,12 @@ const profile = async (handle) => {
       const tier = $("img.css-19222jw").first().attr("alt") || undefined;
 
       // img
-      const imgSrc = $("img.css-1q631t7").first().attr("src") || undefined;
+      const profileImageUrl =
+        $("img.css-1q631t7").first().attr("src") || undefined;
 
       // solved
       const solvedElement = $(`a[href="/profile/${handle}/solved"]`).first();
-      const solved = solvedElement.length
+      const solvedCount = solvedElement.length
         ? parseInt(solvedElement.find("b").text().replace(/,/g, ""), 10)
         : undefined;
 
@@ -103,15 +104,15 @@ const profile = async (handle) => {
 
       const success =
         tier !== undefined &&
-        solved !== undefined &&
-        imgSrc !== undefined &&
+        solvedCount !== undefined &&
+        profileImageUrl !== undefined &&
         streak !== undefined;
 
       return {
         success,
         tier: tier ? tierList[tier] : undefined,
-        solved,
-        imgSrc,
+        solvedCount,
+        profileImageUrl,
         streak,
       };
     } catch (error) {
