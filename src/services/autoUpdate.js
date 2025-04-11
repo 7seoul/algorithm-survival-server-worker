@@ -3,12 +3,13 @@ const { userUpdateByScrap } = require("./userUpdate");
 const logger = require("../../logger");
 
 let userQueue = [];
-let currentIndex = 0;
+let currentIndex = 1;
 let isRunning = false;
 
 const loadUsersFromDB = async () => {
   try {
-    const users = await User.find({});
+    const users = await User.find({}).sort({ _id: 1 });
+
     return users;
   } catch (error) {
     logger.error(`[AUTO] Error loading user:`, error.message);
@@ -17,7 +18,7 @@ const loadUsersFromDB = async () => {
 };
 
 const autoUpdate = async () => {
-  if (userQueue.length === 0) {
+  if (userQueue.length <= 1) {
     logger.info("[AUTO] No users to update.");
     scheduleNext();
     return;
@@ -25,9 +26,9 @@ const autoUpdate = async () => {
 
   const user = userQueue[currentIndex];
   logger.info(
-    `[AUTO] User Queue: ${currentIndex + 1}/${userQueue.length} | Handle: "${
-      user.handle
-    }"`
+    `[AUTO] User Queue: ${Math.floor(currentIndex / 2) + 1}/${Math.floor(
+      userQueue.length / 2
+    )} | Handle: "${user.handle}"`
   );
 
   try {
@@ -36,11 +37,11 @@ const autoUpdate = async () => {
     logger.error(`[AUTO] "${user.handle}" Error updating user:`, error.message);
   }
 
-  currentIndex++;
+  currentIndex += 2;
 
   if (currentIndex >= userQueue.length) {
     logger.info("[AUTO] Completed one round of updates. Reloading users...");
-    currentIndex = 0;
+    currentIndex = 1;
     userQueue = await loadUsersFromDB();
 
     if (!userQueue || userQueue.length === 0) {

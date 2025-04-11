@@ -1,5 +1,4 @@
 const scrap = require("../apis/scrap");
-const solvedac = require("../apis/solvedac");
 const { User } = require("../models/User/User");
 const { Group } = require("../models/Group/Group");
 const { MemberData } = require("../models/Group/MemberData");
@@ -38,7 +37,7 @@ const userUpdateCore = async (handle, profile) => {
     { $set: updateFields },
     { new: true }
   )
-    .select("-__v -password -token -verificationCode")
+    .select("-__v -password -token")
     .populate("joinedGroupList", "groupName _id memberData score");
 
   logger.info(`[UPDATE CORE] "${handle}" profile updated`);
@@ -47,28 +46,28 @@ const userUpdateCore = async (handle, profile) => {
   // 그룹에 유저 업데이트 정보 반영
   for (let group of groups) {
     const member = await MemberData.findOne({
-      handle,
+      user: initUser._id,
       _id: { $in: group.memberData },
     });
 
     if (!member) continue;
 
-    const solvedIncrease = profile.solvedCount - member.currentSolved;
-    if (solvedIncrease <= 0) continue;
+    const solvedIncrease = profile.solvedCount - initUser.currentSolved;
+
+    if (solvedIncrease === 0) continue;
 
     // 유저 정보 업데이트
     const memberUpdateResult = await MemberData.updateOne(
       {
         _id: member._id,
-        currentSolved: member.currentSolved,
       },
       {
         $set: {
           initialStreak: newStreak,
-          currentStreak: profile.streak,
-          currentSolved: profile.solvedCount,
           score: profile.solvedCount - member.initialSolved,
-          downs: member.downs + down,
+        },
+        $inc: {
+          downs: down,
         },
       }
     );
@@ -78,14 +77,16 @@ const userUpdateCore = async (handle, profile) => {
       const updatedGroup = await Group.findByIdAndUpdate(
         group._id,
         {
-          $set: {
-            score: group.score + solvedIncrease,
+          $inc: {
+            score: solvedIncrease,
           },
-          $addToSet: { todaySolvedMembers: initUser._id },
+          $addToSet: {
+            todaySolvedMembers: initUser._id,
+          },
         },
         { new: true }
       ).select(
-        "todayAllSolved todaySolvedMembers members currentStreak maxStreak size"
+        "todayAllSolved todaySolvedMembers currentStreak maxStreak size"
       );
 
       const totalMembers = updatedGroup.size;
@@ -111,6 +112,7 @@ const userUpdateCore = async (handle, profile) => {
       `[UPDATE CORE] "${handle}" -> 그룹: "${group.groupName}" 점수 증가: ${solvedIncrease}`
     );
   }
+  return saved;
 };
 
 const userUpdateByScrap = async (handle) => {
@@ -122,7 +124,7 @@ const userUpdateByScrap = async (handle) => {
   if (profile.success === true) {
     try {
       // 코어
-      await userUpdateCore(handle, profile);
+      return await userUpdateCore(handle, profile);
     } catch (error) {
       logger.error(`[USE SCRAP] "${handle}" Error updating user:`, error);
     }
@@ -131,30 +133,6 @@ const userUpdateByScrap = async (handle) => {
   }
 };
 
-const userUpdateBySolvedac = async (handle) => {
-  const label = `[USE SOLVEDAC API] "${handle}"`;
-  timer.start(label);
-  const profile = await solvedac.profile(handle);
-  const streak = await solvedac.grass(handle);
-  profile.streak = streak;
-  timer.end(label, logger);
-
-  if (profile && streak !== undefined) {
-    try {
-      // 코어
-      await userUpdateCore(handle, profile);
-    } catch (error) {
-      logger.error(
-        `[USE SOLVEDAC API] "${handle}" Error updating user:`,
-        error
-      );
-    }
-  } else {
-    logger.warn(`[USE SOLVEDAC API] "${handle}" FAIL TO SCRAPING.`);
-  }
-};
-
 module.exports = {
   userUpdateByScrap,
-  userUpdateBySolvedac,
 };
