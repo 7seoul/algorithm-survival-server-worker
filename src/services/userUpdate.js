@@ -50,11 +50,7 @@ const userUpdateCore = async (handle, profile) => {
       _id: { $in: group.memberData },
     });
 
-    if (!member) continue;
-
     const solvedIncrease = profile.solvedCount - initUser.currentSolved;
-
-    if (solvedIncrease === 0) continue;
 
     // 유저 정보 업데이트
     const memberUpdateResult = await MemberData.updateOne(
@@ -72,13 +68,19 @@ const userUpdateCore = async (handle, profile) => {
       }
     );
 
+    const allMembers = await MemberData.find({
+      _id: { $in: group.memberData },
+    }).select("score");
+
+    const totalScore = allMembers.reduce((sum, m) => sum + (m.score || 0), 0);
+
     // 그룹 점수 업데이트
     if (memberUpdateResult.modifiedCount > 0) {
       const updatedGroup = await Group.findByIdAndUpdate(
         group._id,
         {
-          $inc: {
-            score: solvedIncrease,
+          $set: {
+            score: totalScore,
           },
           $addToSet: {
             todaySolvedMembers: initUser._id,
@@ -112,7 +114,6 @@ const userUpdateCore = async (handle, profile) => {
       `[UPDATE CORE] "${handle}" -> 그룹: "${group.groupName}" 점수 증가: ${solvedIncrease}`
     );
   }
-  return saved;
 };
 
 const userUpdateByScrap = async (handle) => {
