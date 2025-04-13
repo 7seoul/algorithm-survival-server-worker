@@ -51,6 +51,7 @@ const userUpdateCore = async (handle, profile) => {
     });
 
     const solvedIncrease = profile.solvedCount - initUser.currentSolved;
+    const newScore = profile.solvedCount - member.initialSolved;
 
     // 유저 정보 업데이트
     const memberUpdateResult = await MemberData.updateOne(
@@ -60,7 +61,7 @@ const userUpdateCore = async (handle, profile) => {
       {
         $set: {
           initialStreak: newStreak,
-          score: profile.solvedCount - member.initialSolved,
+          score: newScore,
         },
         $inc: {
           downs: down,
@@ -97,11 +98,12 @@ const userUpdateCore = async (handle, profile) => {
       if (solvedCount === totalMembers && !updatedGroup.todayAllSolved) {
         // streak 증가
         const newGroupStreak = updatedGroup.currentStreak + 1;
+        const newMaxStreak = Math.max(newGroupStreak, updatedGroup.maxStreak);
 
         await Group.findByIdAndUpdate(group._id, {
           $set: {
             currentStreak: newGroupStreak,
-            maxStreak: Math.max(newGroupStreak, updatedGroup.maxStreak),
+            maxStreak: newMaxStreak,
             todayAllSolved: true,
           },
         });
