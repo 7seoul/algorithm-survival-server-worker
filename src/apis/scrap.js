@@ -70,7 +70,7 @@ const profile = async (handle) => {
           `https://solved.ac/profile/${encodeURIComponent(handle)}`,
           {
             waitUntil: "networkidle0",
-            timeout: 15000,
+            timeout: 30000,
           }
         );
       } catch (timeoutError) {

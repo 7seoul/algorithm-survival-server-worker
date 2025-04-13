@@ -45,8 +45,8 @@ const autoUpdate = async () => {
     userQueue = await loadUsersFromDB();
 
     if (!userQueue || userQueue.length === 0) {
-      logger.warn("[AUTO] EMPTY QUEUE after reload! Retrying in 5s...");
-      setTimeout(init, 5000);
+      logger.warn("[AUTO] EMPTY QUEUE after reload! Retrying in 15s...");
+      setTimeout(init, 15000);
       return;
     }
 
@@ -57,7 +57,7 @@ const autoUpdate = async () => {
 };
 
 const scheduleNext = () => {
-  const delay = 30000 + Math.floor(Math.random() * 30000);
+  const delay = 1000 + Math.floor(Math.random() * 1000);
   setTimeout(autoUpdate, delay);
 };
 
@@ -72,8 +72,8 @@ const init = async () => {
   userQueue = await loadUsersFromDB();
 
   if (!userQueue || userQueue.length === 0) {
-    logger.warn("[AUTO] EMPTY QUEUE after reload! Retrying in 5s...");
-    setTimeout(init, 5000); // 5초 후 재시도
+    logger.warn("[AUTO] EMPTY QUEUE after reload! Retrying in 15s...");
+    setTimeout(init, 15000); // 5초 후 재시도
     return;
   }
 
