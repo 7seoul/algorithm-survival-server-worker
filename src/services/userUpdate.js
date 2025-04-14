@@ -50,7 +50,7 @@ const userUpdateCore = async (handle, profile) => {
       _id: { $in: group.memberData },
     });
 
-    const newScore = profile.solvedCount - member.initialSolved;
+    const newScore = Number(profile.solvedCount - member.initialSolved);
 
     logger.warn(newScore);
     logger.warn(member);
