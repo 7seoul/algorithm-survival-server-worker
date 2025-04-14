@@ -71,8 +71,21 @@ const userUpdateCore = async (handle, profile) => {
       }
     );
 
-    logger.warn(memberUpdateResult.score);
+    logger.warn(memberUpdateResult);
     logger.warn(memberUpdateResult.modifiedCount);
+
+    const memberUpdateResult2 = await MemberData.findByIdAndUpdate(member._id, {
+      $set: {
+        initialStreak: newStreak,
+        score: newScore,
+      },
+      $inc: {
+        downs: down,
+      },
+    });
+
+    logger.warn(memberUpdateResult2);
+    logger.warn(memberUpdateResult2.modifiedCount);
 
     const allMembers = await MemberData.find({
       _id: { $in: group.memberData },
