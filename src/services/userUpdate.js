@@ -71,6 +71,7 @@ const userUpdateCore = async (handle, profile) => {
       }
     );
 
+    logger.warn(memberUpdateResult.score);
     logger.warn(memberUpdateResult.modifiedCount);
 
     const allMembers = await MemberData.find({
